@@ -1,0 +1,23 @@
+{
+  "name": "cems-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "dev": "npm --prefix cems-project run dev",
+    "build": "npm --prefix cems-project run build",
+    "lint": "npm --prefix cems-project run lint",
+    "preview": "npm --prefix cems-project run preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "react-hook-form": "^7.72.0",
+    "react-router-dom": "^7.13.1",
+    "zod": "^4.3.6"
+  }
+}
