@@ -55,8 +55,8 @@ function CreateProposal() {
         <div className="form-head">
           <p className="eyebrow">Event Workflow</p>
           <h1>Create Event Proposal</h1>
-          <p className="form-subtitle">
-            Capture event details clearly so your team can review and approve proposals faster.
+          <p className="form-subtitle page-subtitle">
+            Provide clear event details to help reviewers evaluate your proposal efficiently.
           </p>
         </div>
 

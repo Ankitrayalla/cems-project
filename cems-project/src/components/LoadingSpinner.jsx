@@ -1,23 +1,27 @@
-const SIZE_STYLES = {
-	small: 'h-5 w-5 border-2',
-	medium: 'h-8 w-8 border-[3px]',
-	large: 'h-12 w-12 border-4',
+const SIZE_CLASS = {
+  small: "spinner--sm",
+  medium: "",
+  large: "spinner--lg",
 };
 
-function LoadingSpinner({ size = 'medium', text }) {
-	const spinnerSize = SIZE_STYLES[size] || SIZE_STYLES.medium;
+function LoadingSpinner({ size = "medium", text, variant = "panel" }) {
+  const sizeClass = SIZE_CLASS[size] ?? "";
 
-	return (
-		<div className="flex flex-col items-center justify-center gap-2">
-			<div
-				className={`animate-spin rounded-full border-solid border-blue-600 border-t-transparent ${spinnerSize}`}
-				role="status"
-				aria-label="Loading"
-			/>
+  if (variant === "inline") {
+    return (
+      <span className="loading-inline" role="status" aria-live="polite">
+        <span className={`spinner spinner--inline ${sizeClass}`.trim()} aria-hidden="true" />
+        {text ? <span className="loading-inline-text">{text}</span> : null}
+      </span>
+    );
+  }
 
-			{text ? <p className="text-sm text-gray-600">{text}</p> : null}
-		</div>
-	);
+  return (
+    <div className={`loading-state loading-state--${variant}`} role="status" aria-live="polite">
+      <div className={`spinner ${sizeClass}`.trim()} aria-label="Loading" />
+      {text ? <p className="loading-text">{text}</p> : null}
+    </div>
+  );
 }
 
 export default LoadingSpinner;

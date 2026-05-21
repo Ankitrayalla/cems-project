@@ -15,72 +15,76 @@ import SignUP from "./pages/SignUP";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUP />} />
-        <Route path="/edit/:id" element={<EditProposal />} />
+    <div className="app-shell page-container">
+      <BrowserRouter>
+        <Navbar />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUP />} />
+            <Route path="/edit/:id" element={<EditProposal />} />
 
-        <Route
-          path="/create"
-          element={
-            <ProtectedRoute>
-              <CreateProposal />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/hod-dashboard"
-          element={
-            <ProtectedRoute>
-              <HodDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/principal-dashboard"
-          element={
-            <ProtectedRoute>
-              <PrincipalDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/club-resource-request"
-          element={
-            <ProtectedRoute>
-              <ClubResourceRequest />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin-resource-verification"
-          element={
-            <ProtectedRoute>
-              <AdminResourceVerification />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute>
+                  <CreateProposal />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hod-dashboard"
+              element={
+                <ProtectedRoute>
+                  <HodDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/principal-dashboard"
+              element={
+                <ProtectedRoute>
+                  <PrincipalDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/club-resource-request"
+              element={
+                <ProtectedRoute>
+                  <ClubResourceRequest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin-resource-verification"
+              element={
+                <ProtectedRoute>
+                  <AdminResourceVerification />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+      </BrowserRouter>
+    </div>
   );
 }
 

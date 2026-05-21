@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import PageHeader from "../components/ui/PageHeader";
+import StatusBadge from "../components/ui/StatusBadge";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
+import DashboardSkeleton from "../components/ui/DashboardSkeleton";
 
 const getBaseAllocation = (event) => ({
   hall: event.hall ?? "Hall 1",
@@ -23,25 +28,10 @@ function AdminDashboard() {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = "Admin Panel";
-
     return () => {
       document.title = previousTitle;
     };
   }, []);
-
-  const getStatusBadgeClass = (status) => {
-    const normalized = String(status ?? "approved_principal").toLowerCase();
-
-    if (normalized.includes("approved")) {
-      return "bg-emerald-500/15 text-emerald-300 border border-emerald-400/35 font-semibold";
-    }
-
-    if (normalized.includes("rejected")) {
-      return "bg-rose-500/15 text-rose-300 border border-rose-400/35 font-semibold";
-    }
-
-    return "bg-amber-500/15 text-amber-300 border border-amber-400/35 font-semibold";
-  };
 
   const formatStatusLabel = (status) => String(status ?? "approved_principal").replace(/_/g, " ");
 
@@ -157,10 +147,7 @@ function AdminDashboard() {
   }, [fetchAdminEvents]);
 
   const handleAllocationChange = (id, field, value) => {
-    setSuccessById((prev) => ({
-      ...prev,
-      [id]: null,
-    }));
+    setSuccessById((prev) => ({ ...prev, [id]: null }));
 
     setAllocationById((prev) => ({
       ...prev,
@@ -235,11 +222,11 @@ function AdminDashboard() {
 
   if (!loading && !isAdmin) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Access Denied</h1>
-        <div className="proposal-card">
+      <section className="dashboard-page access-panel">
+        <h1>Access Denied</h1>
+        <div className="proposal-card glass-panel">
           <p>You do not have Admin access to this page.</p>
-          {error ? <p style={{ color: "#ff9fab" }}>⚠️ {error}</p> : null}
+          {error ? <AlertBanner variant="error">⚠️ {error}</AlertBanner> : null}
         </div>
       </section>
     );
@@ -247,33 +234,37 @@ function AdminDashboard() {
 
   if (loading) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Admin Panel</h1>
-        <p>Loading...</p>
+      <section className="dashboard-page">
+        <PageHeader
+          eyebrow="Management"
+          title="Admin Allocation Panel"
+          subtitle="Assign halls and confirm resource availability."
+        />
+        <div className="dashboard-body">
+          <DashboardSkeleton showStats={false} cards={2} />
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-      <div className="dashboard-header">
-        <div>
-          <p className="eyebrow">Management</p>
-          <h1>Admin Panel</h1>
-        </div>
-      </div>
+    <section className="dashboard-page">
+      <PageHeader
+        eyebrow="Management"
+        title="Admin Allocation Panel"
+        subtitle="Assign halls and confirm resource availability."
+      />
 
-      {error ? (
-        <div className="proposal-card" style={{ borderLeft: "4px solid #f25865", marginBottom: "12px" }}>
-          <p style={{ color: "#ff9fab", margin: 0 }}>⚠️ {error}</p>
-        </div>
-      ) : null}
+      <div className="dashboard-body">
+      {error ? <AlertBanner variant="error">⚠️ {error}</AlertBanner> : null}
 
+      <div className="dashboard-section">
       {events.length === 0 ? (
-        <div className="empty-state text-center">
-          <h3>No approved events</h3>
-          <p>Events approved by Principal will appear here for allocation.</p>
-        </div>
+        <EmptyState
+          icon="🏛"
+          title="No approved events"
+          description="Events approved by Principal will appear here for hall and resource allocation."
+        />
       ) : (
         <div className="proposal-grid">
           {events.map((event) => {
@@ -293,33 +284,27 @@ function AdminDashboard() {
               selected.comment !== initial.comment;
 
             return (
-              <article
-                key={event.id}
-                className="proposal-card transition-all duration-250 ease-out hover:scale-[1.02] hover:shadow-2xl hover:border-slate-300/30"
-              >
+              <article key={event.id} className="proposal-card">
                 <h3>{event.title}</h3>
                 <p className="proposal-description">{event.description}</p>
 
                 <div className="proposal-meta">
-                  <span>📅 {event.date || "No date"}</span>
-                  <span>👥 {event.participants || 0} participants</span>
+                  <span className="meta-pill">📅 {event.date || "No date"}</span>
+                  <span className="meta-pill">👥 {event.participants || 0} participants</span>
                 </div>
 
                 <p className="proposal-status">
-                  Status:
-                  <span className={`status-chip ${getStatusBadgeClass(event.status)}`}>
-                    {formatStatusLabel(event.status)}
-                  </span>
+                  <span>Status</span>
+                  <StatusBadge status={event.status} label={formatStatusLabel(event.status)} />
                 </p>
 
-                <div className="app-form" style={{ marginTop: "12px", gap: "10px" }}>
+                <div className="app-form">
                   <div className="form-field">
                     <label htmlFor={`hall-${event.id}`}>Hall</label>
                     <select
                       id={`hall-${event.id}`}
                       value={selected.hall}
                       onChange={(e) => handleAllocationChange(event.id, "hall", e.target.value)}
-                      className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                     >
                       <option value="Hall 1">Hall 1</option>
                       <option value="Hall 2">Hall 2</option>
@@ -332,8 +317,9 @@ function AdminDashboard() {
                     <select
                       id={`resource-${event.id}`}
                       value={selected.resource_status}
-                      onChange={(e) => handleAllocationChange(event.id, "resource_status", e.target.value)}
-                      className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
+                      onChange={(e) =>
+                        handleAllocationChange(event.id, "resource_status", e.target.value)
+                      }
                     >
                       <option value="available">available</option>
                       <option value="not_available">not_available</option>
@@ -348,15 +334,14 @@ function AdminDashboard() {
                       value={selected.comment}
                       onChange={(e) => handleAllocationChange(event.id, "comment", e.target.value)}
                       placeholder="Add allocation notes..."
-                      className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="proposal-actions" style={{ marginTop: "10px" }}>
+                <div className="proposal-actions">
                   <button
                     type="button"
-                    className="btn border border-sky-400/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
+                    className="btn btn-primary"
                     disabled={updatingId === event.id || !isChanged}
                     onClick={() => handleConfirmAllocation(event.id)}
                   >
@@ -365,15 +350,15 @@ function AdminDashboard() {
                 </div>
 
                 {successById[event.id] ? (
-                  <p style={{ color: "#86efac", marginTop: "10px", marginBottom: 0 }}>
-                    {successById[event.id]}
-                  </p>
+                  <p className="inline-success">{successById[event.id]}</p>
                 ) : null}
               </article>
             );
           })}
         </div>
       )}
+      </div>
+      </div>
     </section>
   );
 }

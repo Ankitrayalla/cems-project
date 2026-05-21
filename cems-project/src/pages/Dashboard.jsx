@@ -3,34 +3,39 @@ import { useEffect, useState, useContext, useCallback } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import { getProposals, deleteProposal } from "../services/proposals";
 import EventTimeline from "../components/EventTimeline";
+import PageHeader from "../components/ui/PageHeader";
+import StatCard from "../components/ui/StatCard";
+import StatusBadge from "../components/ui/StatusBadge";
+import EmptyState from "../components/ui/EmptyState";
 
 function Dashboard() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [proposals, setProposals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchProposals = useCallback(async () => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     try {
       const data = await getProposals(user.id);
       setProposals(data);
     } catch (err) {
       console.error("Error fetching proposals:", err);
+    } finally {
+      setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     if (!user) {
+      setIsLoading(false);
       return;
     }
-
+    setIsLoading(true);
     const timer = setTimeout(() => {
       fetchProposals();
     }, 0);
-
     return () => clearTimeout(timer);
   }, [user, fetchProposals]);
 
@@ -46,13 +51,6 @@ function Dashboard() {
   };
 
   const normalizeStatus = (status) => String(status ?? "pending_hod").toLowerCase();
-
-  const getStatusTone = (status) => {
-    const normalized = normalizeStatus(status);
-    if (normalized.includes("approved")) return "approved";
-    if (normalized.includes("rejected")) return "rejected";
-    return "pending";
-  };
 
   const getStatusMessage = (event) => {
     const status = normalizeStatus(event?.status);
@@ -80,110 +78,90 @@ function Dashboard() {
       return `Resources not available: ${comment || "No admin comment provided"}`;
     }
 
-    return String(event?.status ?? "pending_hod");
+    return String(event?.status ?? "pending_hod").replace(/_/g, " ");
   };
 
   const totalProposals = proposals.length;
-  const approvedCount = proposals.filter((p) => getStatusTone(p.status) === "approved").length;
-  const pendingCount = proposals.filter((p) => getStatusTone(p.status) === "pending").length;
-
-  const getStatusBadgeClass = (status) => {
-    const tone = getStatusTone(status);
-
-    if (tone === "approved") {
-      return "bg-emerald-500/15 text-emerald-300 border border-emerald-400/35 font-semibold";
-    }
-
-    if (tone === "rejected") {
-      return "bg-rose-500/15 text-rose-300 border border-rose-400/35 font-semibold";
-    }
-
-    return "bg-amber-500/15 text-amber-300 border border-amber-400/35 font-semibold";
-  };
+  const approvedCount = proposals.filter((p) =>
+    String(p.status ?? "").toLowerCase().includes("approved")
+  ).length;
+  const pendingCount = totalProposals - approvedCount;
 
   return (
     <section className="dashboard-page">
-      <div className="dashboard-header">
-        <div>
-          <p className="eyebrow">Workspace</p>
-          <h1>Dashboard</h1>
+      <PageHeader
+        eyebrow="Workspace"
+        title="Club Dashboard"
+        subtitle="Track proposals, approval progress, and resource status."
+        action={
+          <button type="button" onClick={() => navigate("/create")} className="btn btn-primary">
+            Create Event
+          </button>
+        }
+      />
+
+      <div className="dashboard-body">
+        <div className="stats-grid">
+          <StatCard label="Total Proposals" value={isLoading ? "—" : totalProposals} variant="accent" index={0} animate={!isLoading} />
+          <StatCard label="Approved" value={isLoading ? "—" : approvedCount} variant="success" index={1} animate={!isLoading} />
+          <StatCard label="Pending" value={isLoading ? "—" : pendingCount} variant="warning" index={2} animate={!isLoading} />
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/create")}
-          className="btn btn-primary"
-        >
-          Create Event
-        </button>
+        <div className="dashboard-section">
+          <h2 className="section-title">My Proposals</h2>
+
+          {isLoading ? (
+            <div className="proposal-grid" aria-busy="true">
+              <div className="skeleton-card" />
+              <div className="skeleton-card" />
+            </div>
+          ) : proposals.length === 0 ? (
+            <EmptyState
+              icon="✦"
+              title="No proposals yet"
+              description="Create your first event proposal and manage approvals from this dashboard."
+            />
+          ) : (
+            <div className="proposal-grid">
+              {proposals.map((p) => (
+                <article key={p.id} className="proposal-card">
+                  <h3>{p.title}</h3>
+                  <p className="proposal-description">{p.description}</p>
+
+                  <div className="proposal-meta">
+                    <span className="meta-pill">📅 {p.date}</span>
+                    <span className="meta-pill">👥 {p.participants} participants</span>
+                  </div>
+
+                  <p className="proposal-status">
+                    <span>Status</span>
+                    <StatusBadge status={p.status} label={getStatusMessage(p)} />
+                  </p>
+
+                  <EventTimeline event={p} />
+
+                  <div className="proposal-actions">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/edit/${p.id}`)}
+                      className="btn btn-info btn-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(p.id)}
+                      className="btn btn-danger btn-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-        <div className="proposal-card border border-slate-400/20 bg-slate-900/30 backdrop-blur-sm">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-300 m-0">Total Proposals</p>
-          <h3 className="text-3xl mt-2 mb-0 leading-none">{totalProposals}</h3>
-        </div>
-        <div className="proposal-card border border-emerald-400/20 bg-emerald-900/10 backdrop-blur-sm">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-emerald-200/80 m-0">Approved</p>
-          <h3 className="text-3xl mt-2 mb-0 leading-none text-emerald-300">{approvedCount}</h3>
-        </div>
-        <div className="proposal-card border border-amber-400/20 bg-amber-900/10 backdrop-blur-sm">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-amber-200/80 m-0">Pending</p>
-          <h3 className="text-3xl mt-2 mb-0 leading-none text-amber-300">{pendingCount}</h3>
-        </div>
-      </div>
-
-      <h2 className="section-title">My Proposals</h2>
-
-      {proposals.length === 0 ? (
-        <div className="empty-state text-center">
-          <h3>No proposals yet 🚀</h3>
-          <p>Create your first event proposal and manage it from this dashboard.</p>
-        </div>
-      ) : (
-        <div className="proposal-grid">
-          {proposals.map((p) => (
-            <article
-              key={p.id}
-              className="proposal-card transition-all duration-250 ease-out hover:scale-[1.02] hover:shadow-2xl hover:border-slate-300/30"
-            >
-              <h3>{p.title}</h3>
-              <p className="proposal-description">{p.description}</p>
-
-              <div className="proposal-meta">
-                <span>{p.date}</span>
-                <span>{p.participants} participants</span>
-              </div>
-
-              <p className="proposal-status">
-                Status:
-                <span className={`status-chip ${getStatusBadgeClass(p.status)}`}>
-                  {getStatusMessage(p)}
-                </span>
-              </p>
-
-              <EventTimeline event={p} />
-
-              <div className="proposal-actions">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/edit/${p.id}`)}
-                  className="btn border border-sky-300/30 bg-sky-400/10 text-sky-100 hover:bg-sky-400/20"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(p.id)}
-                  className="btn border border-rose-300/35 bg-rose-500/10 text-rose-100 hover:bg-rose-500/20"
-                >
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

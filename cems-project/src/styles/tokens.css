@@ -1,0 +1,126 @@
+/* CEMS Design System — tokens */
+:root {
+  /* Backgrounds */
+  --bg: #060c1a;
+  --bg-soft: #0b1328;
+  --bg-elevated: #101a34;
+  --surface: rgba(14, 22, 48, 0.52);
+  --surface-strong: rgba(18, 28, 56, 0.88);
+  --surface-hover: rgba(24, 38, 72, 0.65);
+
+  /* Text */
+  --text: #f0f3fc;
+  --text-muted: #9ca8c8;
+  --text-subtle: #6e7c9e;
+  --text-inverse: #060c1a;
+
+  /* Borders */
+  --line: rgba(140, 165, 220, 0.14);
+  --line-strong: rgba(140, 165, 220, 0.26);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-highlight: rgba(255, 255, 255, 0.04);
+
+  /* Brand */
+  --primary: #3b9eff;
+  --primary-hover: #2d8fe8;
+  --primary-muted: rgba(59, 158, 255, 0.14);
+  --primary-glow: rgba(59, 158, 255, 0.22);
+  --accent: #8b6fd6;
+  --accent-bright: #b4a0e8;
+  --accent-glow: rgba(139, 111, 214, 0.18);
+  --gradient-brand: linear-gradient(135deg, #3b9eff 0%, #7b5fd4 100%);
+  --gradient-surface: linear-gradient(
+    168deg,
+    rgba(22, 34, 68, 0.95) 0%,
+    rgba(12, 18, 40, 0.92) 100%
+  );
+  --gradient-card-shine: linear-gradient(
+    180deg,
+    var(--glass-highlight) 0%,
+    transparent 42%
+  );
+
+  /* Semantic */
+  --success: #2dd4a8;
+  --success-bg: rgba(45, 212, 168, 0.1);
+  --success-border: rgba(45, 212, 168, 0.28);
+  --warning: #e8b84a;
+  --warning-bg: rgba(232, 184, 74, 0.1);
+  --warning-border: rgba(232, 184, 74, 0.3);
+  --danger: #f06b85;
+  --danger-bg: rgba(240, 107, 133, 0.1);
+  --danger-border: rgba(240, 107, 133, 0.3);
+  --info: #6eb5f0;
+  --info-bg: rgba(110, 181, 240, 0.1);
+  --info-border: rgba(110, 181, 240, 0.28);
+
+  /* Spacing — 4px base rhythm */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --section-gap: 28px;
+  --stack-gap: 20px;
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* Shadows — layered, restrained */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.36);
+  --shadow-inset: inset 0 1px 0 var(--glass-highlight);
+  --shadow-card: var(--shadow-xs), var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-xs), var(--shadow-md);
+  --shadow-focus: 0 0 0 3px var(--primary-muted);
+
+  /* Layout */
+  --max-width: 1160px;
+  --content-pad: clamp(16px, 3vw, 24px);
+  --nav-height: 60px;
+
+  /* Typography */
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Space Grotesk", var(--font-sans);
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: clamp(1.75rem, 3.5vw, 2.25rem);
+  --text-4xl: clamp(2rem, 4.5vw, 2.75rem);
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.12em;
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-medium: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --duration-fast: 120ms;
+    --duration-medium: 220ms;
+    --duration-slow: 380ms;
+  }
+}

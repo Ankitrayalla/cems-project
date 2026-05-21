@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import PageHeader from "../components/ui/PageHeader";
+import StatusBadge from "../components/ui/StatusBadge";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
+import DashboardSkeleton from "../components/ui/DashboardSkeleton";
 
 function AdminResourceVerification() {
   const ADMIN_COMMENT_MAX_LENGTH = 300;
@@ -13,7 +18,6 @@ function AdminResourceVerification() {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = "Admin Resource Verification";
-
     return () => {
       document.title = previousTitle;
     };
@@ -192,11 +196,11 @@ function AdminResourceVerification() {
 
   if (!loading && !isAdmin) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Access Denied</h1>
-        <div className="proposal-card">
+      <section className="dashboard-page access-panel">
+        <h1>Access Denied</h1>
+        <div className="proposal-card glass-panel">
           <p>You do not have Admin access to this page.</p>
-          {error ? <p style={{ color: "#ff9fab" }}>Error: {error}</p> : null}
+          {error ? <AlertBanner variant="error">Error: {error}</AlertBanner> : null}
         </div>
       </section>
     );
@@ -204,59 +208,63 @@ function AdminResourceVerification() {
 
   if (loading) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Admin Verification</h1>
-        <p>Loading...</p>
+      <section className="dashboard-page">
+        <PageHeader
+          eyebrow="Verification"
+          title="Admin Resource Verification"
+          subtitle="Review submitted hall and resource requests from clubs."
+        />
+        <div className="dashboard-body">
+          <DashboardSkeleton showStats={false} cards={2} />
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-      <div className="dashboard-header">
-        <div>
-          <p className="eyebrow">Verification</p>
-          <h1>Admin Resource Verification</h1>
-        </div>
-      </div>
+    <section className="dashboard-page">
+      <PageHeader
+        eyebrow="Verification"
+        title="Admin Resource Verification"
+        subtitle="Review submitted hall and resource requests from clubs."
+      />
 
-      {error ? (
-        <div className="proposal-card" style={{ borderLeft: "4px solid #f25865", marginBottom: "12px" }}>
-          <p style={{ color: "#ff9fab", margin: 0 }}>Error: {error}</p>
-        </div>
-      ) : null}
+      <div className="dashboard-body">
+      {error ? <AlertBanner variant="error">Error: {error}</AlertBanner> : null}
 
+      <div className="dashboard-section">
       {events.length === 0 ? (
-        <div className="empty-state text-center">
-          <h3>No approved events</h3>
-          <p>No submitted resource requests to verify.</p>
-        </div>
+        <EmptyState
+          icon="🔍"
+          title="No pending verifications"
+          description="Submitted resource requests from clubs will appear here for admin review."
+        />
       ) : (
         <div className="proposal-grid">
           {events.map((event) => (
-            <article
-              key={event.id}
-              className="proposal-card transition-all duration-250 ease-out hover:scale-[1.02] hover:shadow-2xl hover:border-slate-300/30"
-            >
+            <article key={event.id} className="proposal-card">
               <h3>{event.title}</h3>
               <p className="proposal-description">{event.description}</p>
 
               <div className="proposal-meta">
-                <span>Requested Hall: {event.requested_hall || "Not specified"}</span>
+                <span className="meta-pill">
+                  Hall: {event.requested_hall || "Not specified"}
+                </span>
               </div>
 
-              <div className="form-field" style={{ marginTop: "8px" }}>
+              <div className="form-field">
                 <label>Requested Resources</label>
                 <textarea
                   value={event.requested_resources || "No resources listed"}
                   readOnly
                   rows={3}
-                  className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                 />
               </div>
 
-              <div className="form-field" style={{ marginTop: "8px" }}>
-                <label htmlFor={`admin-comment-${event.id}`}>Admin Comment (for rejection)</label>
+              <div className="form-field">
+                <label htmlFor={`admin-comment-${event.id}`}>
+                  Admin Comment (for rejection)
+                </label>
                 <textarea
                   id={`admin-comment-${event.id}`}
                   rows={3}
@@ -269,24 +277,25 @@ function AdminResourceVerification() {
                     }))
                   }
                   placeholder="Optional for approve, required for reject"
-                  className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                 />
-                <p className="mt-1 mb-0 text-right text-xs text-slate-300">
+                <p className="char-count">
                   {(commentById[event.id] ?? "").length}/{ADMIN_COMMENT_MAX_LENGTH}
                 </p>
               </div>
 
-              <p className="proposal-status" style={{ marginTop: "10px" }}>
-                Request Status:
-                <span className="status-chip bg-amber-500/15 text-amber-300 border border-amber-400/35 font-semibold">
-                  {String(event.resource_request_status ?? "submitted").replace(/_/g, " ")}
-                </span>
+              <p className="proposal-status">
+                <span>Request Status</span>
+                <StatusBadge
+                  status={event.resource_request_status}
+                  tone="pending"
+                  label={String(event.resource_request_status ?? "submitted").replace(/_/g, " ")}
+                />
               </p>
 
               <div className="proposal-actions">
                 <button
                   type="button"
-                  className="btn border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
+                  className="btn btn-success"
                   disabled={updatingId === event.id}
                   onClick={() => handleApprove(event.id)}
                 >
@@ -295,7 +304,7 @@ function AdminResourceVerification() {
 
                 <button
                   type="button"
-                  className="btn border border-rose-400/40 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20 disabled:opacity-60"
+                  className="btn btn-danger"
                   disabled={updatingId === event.id}
                   onClick={() => handleReject(event.id)}
                 >
@@ -306,6 +315,8 @@ function AdminResourceVerification() {
           ))}
         </div>
       )}
+      </div>
+      </div>
     </section>
   );
 }

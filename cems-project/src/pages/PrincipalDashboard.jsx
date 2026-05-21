@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import PageHeader from "../components/ui/PageHeader";
+import StatusBadge from "../components/ui/StatusBadge";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
+import RejectModal from "../components/ui/RejectModal";
+import DashboardSkeleton from "../components/ui/DashboardSkeleton";
 
 function PrincipalDashboard() {
   const PRINCIPAL_COMMENT_MAX_LENGTH = 300;
@@ -15,25 +21,10 @@ function PrincipalDashboard() {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = "Principal Panel";
-
     return () => {
       document.title = previousTitle;
     };
   }, []);
-
-  const getStatusBadgeClass = (status) => {
-    const normalized = String(status ?? "approved_hod").toLowerCase();
-
-    if (normalized.includes("approved")) {
-      return "bg-emerald-500/15 text-emerald-300 border border-emerald-400/35 font-semibold";
-    }
-
-    if (normalized.includes("rejected")) {
-      return "bg-rose-500/15 text-rose-300 border border-rose-400/35 font-semibold";
-    }
-
-    return "bg-amber-500/15 text-amber-300 border border-amber-400/35 font-semibold";
-  };
 
   const formatStatusLabel = (status) => String(status ?? "approved_hod").replace(/_/g, " ");
 
@@ -168,19 +159,14 @@ function PrincipalDashboard() {
   };
 
   const handleCloseRejectModal = () => {
-    if (updating) {
-      return;
-    }
-
+    if (updating) return;
     setIsRejectModalOpen(false);
     setRejectingEventId(null);
     setRejectComment("");
   };
 
   const handleRejectSubmit = async () => {
-    if (!rejectingEventId) {
-      return;
-    }
+    if (!rejectingEventId) return;
 
     const comment = rejectComment.trim();
     if (!comment) {
@@ -207,11 +193,11 @@ function PrincipalDashboard() {
 
   if (!loading && !isPrincipal) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Access Denied</h1>
-        <div className="proposal-card">
+      <section className="dashboard-page access-panel">
+        <h1>Access Denied</h1>
+        <div className="proposal-card glass-panel">
           <p>You do not have Principal access to this page.</p>
-          {error && <p style={{ color: "#ff9fab" }}>⚠️ {error}</p>}
+          {error ? <AlertBanner variant="error">⚠️ {error}</AlertBanner> : null}
         </div>
       </section>
     );
@@ -219,60 +205,59 @@ function PrincipalDashboard() {
 
   if (loading) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Principal Panel</h1>
-        <p>Loading...</p>
+      <section className="dashboard-page">
+        <PageHeader
+          eyebrow="Management"
+          title="Principal Panel"
+          subtitle="Final approval for HOD-cleared events."
+        />
+        <div className="dashboard-body">
+          <DashboardSkeleton showStats={false} cards={2} />
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-      <div className="dashboard-header">
-        <div>
-          <p className="eyebrow">Management</p>
-          <h1>Principal Panel</h1>
-        </div>
-      </div>
+    <section className="dashboard-page">
+      <PageHeader
+        eyebrow="Management"
+        title="Principal Panel"
+        subtitle="Final approval for HOD-cleared events."
+      />
 
-      {error && (
-        <div className="proposal-card" style={{ borderLeft: "4px solid #f25865", marginBottom: "12px" }}>
-          <p style={{ color: "#ff9fab", margin: 0 }}>⚠️ {error}</p>
-        </div>
-      )}
+      <div className="dashboard-body">
+      {error ? <AlertBanner variant="error">⚠️ {error}</AlertBanner> : null}
 
+      <div className="dashboard-section">
       {events.length === 0 ? (
-        <div className="empty-state text-center">
-          <h3>No approved HOD events yet 🚀</h3>
-          <p>Events approved by HOD will appear here for Principal review.</p>
-        </div>
+        <EmptyState
+          icon="✓"
+          title="No approved HOD events yet"
+          description="Events approved by HOD will appear here for Principal review."
+        />
       ) : (
         <div className="proposal-grid">
           {events.map((event) => (
-            <article
-              key={event.id}
-              className="proposal-card transition-all duration-250 ease-out hover:scale-[1.02] hover:shadow-2xl hover:border-slate-300/30"
-            >
+            <article key={event.id} className="proposal-card">
               <h3>{event.title}</h3>
               <p className="proposal-description">{event.description}</p>
 
               <div className="proposal-meta">
-                <span>📅 {event.date || "No date"}</span>
-                <span>👥 {event.participants || 0} participants</span>
+                <span className="meta-pill">📅 {event.date || "No date"}</span>
+                <span className="meta-pill">👥 {event.participants || 0} participants</span>
               </div>
 
               <p className="proposal-status">
-                Status:
-                <span className={`status-chip ${getStatusBadgeClass(event.status)}`}>
-                  {formatStatusLabel(event.status)}
-                </span>
+                <span>Status</span>
+                <StatusBadge status={event.status} label={formatStatusLabel(event.status)} />
               </p>
 
               <div className="proposal-actions">
                 <button
                   onClick={() => handleApprove(event.id)}
                   disabled={updating === event.id}
-                  className="btn border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
+                  className="btn btn-success"
                 >
                   {updating === event.id ? "Approving..." : "Approve"}
                 </button>
@@ -280,7 +265,7 @@ function PrincipalDashboard() {
                 <button
                   onClick={() => handleOpenRejectModal(event.id)}
                   disabled={updating === event.id}
-                  className="btn border border-rose-400/40 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20 disabled:opacity-60"
+                  className="btn btn-danger"
                 >
                   {updating === event.id ? "Rejecting..." : "Reject"}
                 </button>
@@ -289,50 +274,21 @@ function PrincipalDashboard() {
           ))}
         </div>
       )}
+      </div>
+      </div>
 
       {isRejectModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4">
-          <div className="reject-modal-shell w-full max-w-lg rounded-2xl border border-slate-500/30 bg-slate-900/95 p-5 shadow-2xl">
-            <h2 className="text-xl font-semibold text-slate-100 m-0">Reject Event</h2>
-            <p className="text-slate-300 mt-2 mb-3">Add a clear reason for rejection. This will be saved as Principal comment.</p>
-
-            <div className="reject-comment-box">
-              <label htmlFor="principal-reject-comment" className="reject-comment-label">Rejection Reason</label>
-              <textarea
-                id="principal-reject-comment"
-                value={rejectComment}
-                onChange={(e) => setRejectComment(e.target.value)}
-                rows={4}
-                maxLength={PRINCIPAL_COMMENT_MAX_LENGTH}
-                className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-rose-400/60"
-                placeholder="Write rejection reason..."
-              />
-              <p className="reject-comment-helper">This comment is visible to the event head.</p>
-              <p className="mt-2 mb-0 text-right text-xs text-slate-300">
-                {rejectComment.length}/{PRINCIPAL_COMMENT_MAX_LENGTH}
-              </p>
-            </div>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleCloseRejectModal}
-                className="btn btn-secondary"
-                disabled={Boolean(updating)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleRejectSubmit}
-                className="btn border border-rose-400/40 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20 disabled:opacity-60"
-                disabled={Boolean(updating)}
-              >
-                {updating ? "Rejecting..." : "Submit Rejection"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <RejectModal
+          title="Reject Event"
+          description="Add a clear reason for rejection. This will be saved as Principal comment."
+          commentId="principal-reject-comment"
+          comment={rejectComment}
+          onCommentChange={setRejectComment}
+          maxLength={PRINCIPAL_COMMENT_MAX_LENGTH}
+          onClose={handleCloseRejectModal}
+          onSubmit={handleRejectSubmit}
+          isSubmitting={Boolean(updating)}
+        />
       ) : null}
     </section>
   );

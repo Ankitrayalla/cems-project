@@ -25,19 +25,45 @@ function EventTimeline({ event }) {
     },
   ];
 
+  const completedSteps = steps.filter((s) => s.done || s.rejected).length;
+  const progressPercent = Math.round((completedSteps / steps.length) * 100);
+
   return (
     <div className="event-timeline" aria-label="Event progress timeline">
-      {steps.map((step) => (
+      <div
+        className="timeline-progress"
+        role="progressbar"
+        aria-valuenow={progressPercent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Approval progress ${progressPercent}%`}
+      >
         <div
-          key={step.key}
-          className={`timeline-step ${step.done ? "done" : "pending"} ${step.rejected ? "rejected" : ""}`.trim()}
-        >
-          <span className="timeline-icon" aria-hidden="true">
-            {step.rejected ? "❌" : step.done ? "✔" : "•"}
-          </span>
-          <span className="timeline-label">{step.label}</span>
-        </div>
-      ))}
+          className="timeline-progress-bar"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      <div className="timeline-steps timeline-steps--horizontal">
+        {steps.map((step) => {
+          const stateClass = step.rejected
+            ? "rejected"
+            : step.done
+              ? "done"
+              : "pending";
+
+          const icon = step.rejected ? "✕" : step.done ? "✓" : "○";
+
+          return (
+            <div key={step.key} className={`timeline-step ${stateClass}`}>
+              <span className="timeline-dot" aria-hidden="true">
+                {icon}
+              </span>
+              <span className="timeline-label">{step.label}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

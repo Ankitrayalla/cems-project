@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const loginSchema = z.object({
@@ -81,7 +81,9 @@ function Login() {
         <div className="form-head">
           <p className="eyebrow">Account Access</p>
           <h1>Login</h1>
-          <p className="form-subtitle">Welcome back. Sign in to continue managing your events.</p>
+          <p className="form-subtitle">
+            Sign in to access your role dashboard and manage campus events.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="app-form" noValidate>
@@ -113,6 +115,10 @@ function Login() {
             </button>
           </div>
         </form>
+
+        <p className="form-footer-link">
+          New here? <Link to="/signup">Create an account</Link>
+        </p>
       </div>
     </section>
   );

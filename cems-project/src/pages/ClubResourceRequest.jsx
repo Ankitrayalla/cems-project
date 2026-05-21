@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import PageHeader from "../components/ui/PageHeader";
+import StatusBadge from "../components/ui/StatusBadge";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
+import DashboardSkeleton from "../components/ui/DashboardSkeleton";
 
 function ClubResourceRequest() {
   const HALL_OPTIONS = ["Hall 1", "Hall 2", "Hall 3"];
@@ -14,7 +19,6 @@ function ClubResourceRequest() {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = "Resource Request";
-
     return () => {
       document.title = previousTitle;
     };
@@ -147,33 +151,37 @@ function ClubResourceRequest() {
 
   if (loading) {
     return (
-      <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "2rem" }}>Club Resource Request</h1>
-        <p>Loading...</p>
+      <section className="dashboard-page">
+        <PageHeader
+          eyebrow="Resources"
+          title="Club Resource Request"
+          subtitle="Request halls and equipment for principal-approved events."
+        />
+        <div className="dashboard-body">
+          <DashboardSkeleton showStats={false} cards={2} />
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="dashboard-page" style={{ marginTop: "22px", color: "#e7ecff" }}>
-      <div className="dashboard-header">
-        <div>
-          <p className="eyebrow">Resources</p>
-          <h1>Club Resource Request</h1>
-        </div>
-      </div>
+    <section className="dashboard-page">
+      <PageHeader
+        eyebrow="Resources"
+        title="Club Resource Request"
+        subtitle="Request halls and equipment for principal-approved events."
+      />
 
-      {error ? (
-        <div className="proposal-card" style={{ borderLeft: "4px solid #f25865", marginBottom: "12px" }}>
-          <p style={{ color: "#ff9fab", margin: 0 }}>Error: {error}</p>
-        </div>
-      ) : null}
+      <div className="dashboard-body">
+      {error ? <AlertBanner variant="error">Error: {error}</AlertBanner> : null}
 
+      <div className="dashboard-section">
       {events.length === 0 ? (
-        <div className="empty-state text-center">
-          <h3>No approved principal events</h3>
-          <p>Once principal approves an event, you can request hall and resources here.</p>
-        </div>
+        <EmptyState
+          icon="📦"
+          title="No approved principal events"
+          description="Once the Principal approves an event, you can request hall and resources here."
+        />
       ) : (
         <div className="proposal-grid">
           {events.map((event) => {
@@ -183,33 +191,31 @@ function ClubResourceRequest() {
             };
 
             return (
-              <article
-                key={event.id}
-                className="proposal-card transition-all duration-250 ease-out hover:scale-[1.02] hover:shadow-2xl hover:border-slate-300/30"
-              >
+              <article key={event.id} className="proposal-card">
                 <h3>{event.title}</h3>
                 <p className="proposal-description">{event.description}</p>
 
                 <div className="proposal-meta">
-                  <span>Date: {event.date || "No date"}</span>
-                  <span>Participants: {event.participants || 0}</span>
+                  <span className="meta-pill">📅 {event.date || "No date"}</span>
+                  <span className="meta-pill">👥 {event.participants || 0} participants</span>
                 </div>
 
                 <p className="proposal-status">
-                  Status:
-                  <span className="status-chip bg-emerald-500/15 text-emerald-300 border border-emerald-400/35 font-semibold">
-                    {String(event.status ?? "approved_principal").replace(/_/g, " ")}
-                  </span>
+                  <span>Status</span>
+                  <StatusBadge
+                    status={event.status}
+                    tone="approved"
+                    label={String(event.status ?? "approved_principal").replace(/_/g, " ")}
+                  />
                 </p>
 
-                <div className="app-form" style={{ marginTop: "12px", gap: "10px" }}>
+                <div className="app-form">
                   <div className="form-field">
                     <label htmlFor={`requested-hall-${event.id}`}>Requested Hall</label>
                     <select
                       id={`requested-hall-${event.id}`}
                       value={selected.hall}
                       onChange={(e) => handleFormChange(event.id, "hall", e.target.value)}
-                      className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                     >
                       <option value="Hall 1">Hall 1</option>
                       <option value="Hall 2">Hall 2</option>
@@ -225,15 +231,14 @@ function ClubResourceRequest() {
                       value={selected.resources}
                       onChange={(e) => handleFormChange(event.id, "resources", e.target.value)}
                       placeholder="Projector, sound system, chairs..."
-                      className="w-full rounded-xl border border-slate-500/40 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="proposal-actions" style={{ marginTop: "10px" }}>
+                <div className="proposal-actions">
                   <button
                     type="button"
-                    className="btn border border-sky-400/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
+                    className="btn btn-primary"
                     disabled={submittingId === event.id}
                     onClick={() => handleSubmitRequest(event.id)}
                   >
@@ -242,15 +247,15 @@ function ClubResourceRequest() {
                 </div>
 
                 {successById[event.id] ? (
-                  <p style={{ color: "#86efac", marginTop: "10px", marginBottom: 0 }}>
-                    {successById[event.id]}
-                  </p>
+                  <p className="inline-success">{successById[event.id]}</p>
                 ) : null}
               </article>
             );
           })}
         </div>
       )}
+      </div>
+      </div>
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema } from '../utils/validationSchemas';
@@ -43,7 +44,9 @@ function Signup() {
         <div className="form-head">
           <p className="eyebrow">New Account</p>
           <h1>Signup</h1>
-          <p className="form-subtitle">Create your account to submit and track event proposals.</p>
+          <p className="form-subtitle">
+            Register to submit proposals and follow approvals through each stage.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="app-form" noValidate>
@@ -89,6 +92,10 @@ function Signup() {
             </button>
           </div>
         </form>
+
+        <p className="form-footer-link">
+          Already have an account? <Link to="/login">Sign in</Link>
+        </p>
       </div>
     </section>
   );
