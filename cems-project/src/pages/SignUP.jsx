@@ -24,6 +24,7 @@ function Signup() {
       email: data.email,
       password: data.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/login`,
         data: {
           full_name: data.name,
         },
