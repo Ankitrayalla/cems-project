@@ -20,7 +20,7 @@ function Signup() {
   });
 
   const onSubmit = async (data) => {
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -34,6 +34,27 @@ function Signup() {
     if (error) {
       alert(error.message);
       return;
+    }
+
+    const userId = signUpData?.user?.id;
+
+    if (userId) {
+      const { error: profileError } = await supabase.from('profiles').upsert(
+        {
+          id: userId,
+          full_name: data.name,
+          role: 'club',
+        },
+        { onConflict: 'id' }
+      );
+
+      if (profileError) {
+        console.error('Profile creation failed after signup:', profileError);
+        alert(
+          'Account created, but profile setup failed. Please contact support or try logging in again.'
+        );
+        return;
+      }
     }
 
     alert('Signup successful. Check your email to confirm your account.');
