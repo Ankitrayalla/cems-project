@@ -26,7 +26,7 @@ function Signup() {
       options: {
         emailRedirectTo: `${window.location.origin}/login`,
         data: {
-          full_name: data.name,
+          name: data.name,
         },
       },
     });
@@ -42,7 +42,6 @@ function Signup() {
       const { error: profileError } = await supabase.from('profiles').upsert(
         {
           id: userId,
-          full_name: data.name,
           role: 'club',
         },
         { onConflict: 'id' }

@@ -5,13 +5,9 @@ const ensureUserProfile = async (user) => {
     throw new Error("You must be logged in to create an event");
   }
 
-  const fullName =
-    user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email ?? "New User";
-
   const { error } = await supabase.from("profiles").upsert(
     {
       id: user.id,
-      full_name: fullName,
       role: user.user_metadata?.role ?? "club",
     },
     { onConflict: "id" }
